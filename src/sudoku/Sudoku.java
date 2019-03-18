@@ -75,7 +75,7 @@ public class Sudoku {
 		for (int i = 0; i < possibleValues.length; i++) {
 			for (int j = 0; j < possibleValues[0].length; j++) {
 				for (int k = 0; k < 9; k++) {
-					if (isValidPlacement(i, j, k + 1)) {
+					if (board[i][j] != 0 && isValidPlacement(i, j, k + 1)) {
 						count++;
 						possibleValues[i][j][k] = k + 1;
 						row = i;
