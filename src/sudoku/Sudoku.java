@@ -105,17 +105,17 @@ public class Sudoku {
 	 */
 	public void checkRows() {
 		int count = 0, col = 0, index = 0;
-		for (int i = 0; i < board.length; i++) {
-			for (int num = 1; num <= 9; num++) {
+		for (int i = 0; i < board.length; i++) { // loops through all rows on the board
+			for (int num = 1; num <= 9; num++) { // loops through all legal numbers
 				count = 0;
-				for (int j = 0; j < board[0].length; j++) {
-					if (possibleValues[i][j][num - 1] == num) {
+				for (int j = 0; j < board[0].length; j++) { // loops through each column
+					if (possibleValues[i][j][num - 1] == num) { // if a number is a possible value for this cell
 						count++;
 						col = j;
 						index = num;
 					}
 				}
-				if(count == 1) { // this means it is only possible in one cell
+				if(count == 1) { // this means num is only possible for one cell in this row
 					board[i][col] = index;
 				}
 			}
