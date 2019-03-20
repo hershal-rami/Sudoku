@@ -104,20 +104,59 @@ public class Sudoku {
 	 * Checks each row to see if there are any numbers which are only possible
 	 * values in one cell
 	 */
-	public void checkRows() {
-		int count = 0, col = 0, index = 0;
-		for (int i = 0; i < board.length; i++) { // loops through all rows on the board
-			for (int num = 1; num <= 9; num++) { // loops through all legal numbers
+	public void checkRowsCols() {
+		int count = 0, count2 = 0, row2 = 0, col = 0, col2 = 0, index = 0, index2 = 0;
+		for (int i = 0; i < board.length; i++) {
+			for (int num = 1; num <= 9; num++) {
 				count = 0;
-				for (int j = 0; j < board[0].length; j++) { // loops through each column
+				for (int j = 0; j < board[0].length; j++) {
 					if (possibleValues[i][j][num - 1] == num) { // if a number is a possible value for this cell
 						count++;
 						col = j;
 						index = num;
 					}
+					if (possibleValues[j][i][num - 1] == num) {
+						count2++;
+						row2 = j;
+						col2 = i;
+						index2 = num;
+					}
 				}
-				if(count == 1) { // this means num is only possible for one cell in this row
+				if (count == 1) { // this means num is only possible for one cell in this row
 					board[i][col] = index;
+				}
+				if (count2 == 1) { // this means num is only possible for one cell in this col
+					board[row2][col2] = index2;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Checks each square to find numbers which are only possible values for one
+	 * cell in the square
+	 */
+	public void checkSquares() {
+		int count = 0, rowIndex = 0, colIndex = 0, numToPlace = 0;
+		// i and j are for the top left indexes of all 9 squares
+		// row and col are for the coords of each cell within every square
+		for (int i = 0; i < 9; i += 3) {
+			for (int j = 0; j < 9; j += 3) { // loops through all 9 squares
+				for (int num = 1; num <= 9; num++) { // loops through all 9 legal numbers
+					count = 0;
+					for (int row = i; row < i + 3; row++) {
+						for (int col = j; col < j + 3; col++) { // loops through all 9 cells within a square
+							if(possibleValues[row][col][num - 1] == num) { // if a number is a possible value for this cell
+								count++;
+								rowIndex = row;
+								colIndex = col;
+								numToPlace = num;
+							}
+						}
+					}
+					if(count == 1) { // this means num is only possible for one cell in this square
+						board[rowIndex][colIndex] = numToPlace;
+					}
 				}
 			}
 		}
