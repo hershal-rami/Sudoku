@@ -43,7 +43,7 @@ public class Sudoku {
 
 	public Sudoku(int[][] board) {
 		Sudoku.board = board;
-		Sudoku.possibleValues = new int[board.length][board[0].length][9]; 
+		Sudoku.possibleValues = new int[board.length][board[0].length][9];
 	}
 
 	/**
@@ -54,9 +54,9 @@ public class Sudoku {
 			System.out.println("Unsolvable board. Exiting out.");
 			return;
 		}
-		
-//		backtrackAlgorithm();
-//		printBoard();
+
+		// backtrackAlgorithm();
+		// printBoard();
 
 	}
 
@@ -74,8 +74,10 @@ public class Sudoku {
 		 */
 		for (int i = 0; i < possibleValues.length; i++) {
 			for (int j = 0; j < possibleValues[0].length; j++) {
+				if (board[i][j] != 0)
+					continue;
 				for (int k = 0; k < 9; k++) {
-					if (board[i][j] != 0 && isValidPlacement(i, j, k + 1)) {
+					if (isValidPlacement(i, j, k + 1)) {
 						count++;
 						possibleValues[i][j][k] = k + 1;
 						row = i;
@@ -96,14 +98,26 @@ public class Sudoku {
 		}
 		return true;
 	}
-	
+
 	/**
-	 * Checks each row to see if there are any numbers which are only possible values in one place
+	 * Checks each row to see if there are any numbers which are only possible
+	 * values in one cell
 	 */
 	public void checkRows() {
-		for(int i = 0; i < board.length; i++) {
-			for(int j = 0; j < board[0].length; j++) {
-				// TODO write this
+		int count = 0, col = 0, index = 0;
+		for (int i = 0; i < board.length; i++) {
+			for (int num = 1; num <= 9; num++) {
+				count = 0;
+				for (int j = 0; j < board[0].length; j++) {
+					if (possibleValues[i][j][num - 1] == num) {
+						count++;
+						col = j;
+						index = num;
+					}
+				}
+				if(count == 1) { // this means it is only possible in one cell
+					board[i][col] = index;
+				}
 			}
 		}
 	}
@@ -111,48 +125,48 @@ public class Sudoku {
 	private int row = 0;
 	private int col = 0;
 	private boolean boardSolved = false;
-	
+
 	private boolean backtrackAlgorithm() {
 		// if the cell has a number already, move on
-		if(board[row][col] != 0) {
+		if (board[row][col] != 0) {
 			findNextIndex();
 			backtrackAlgorithm();
 		}
-		
+
 		// test numbers in that cell until they are valid, then place it and move on
 		// TODO use possibleValues instead of looping through all numbers
-		for(int i = 1; i < 10; i++) {
-			if(isValidPlacement(row, col, i)) {
+		for (int i = 1; i < 10; i++) {
+			if (isValidPlacement(row, col, i)) {
 				board[row][col] = i;
 				findNextIndex();
-				if(!backtrackAlgorithm())
+				if (!backtrackAlgorithm())
 					break;
 			}
 		}
-		
+
 		// if we reach the final cell, we're done!
-		if(boardSolved) {
+		if (boardSolved) {
 			return true;
 		}
-		
+
 		return false;
-		
+
 	}
-	
+
 	private void findNextIndex() {
 		// 0-indexed
-		if(row == 8 && col ==8) {
+		if (row == 8 && col == 8) {
 			boardSolved = true;
 		}
-		
-		if(col + 1 >= 9) {
+
+		if (col + 1 >= 9) {
 			col = 0;
 			row++;
 		} else {
 			col++;
 		}
 	}
-		
+
 	private static int[][] readBoardFromFile(String fileName) {
 		int[][] board = new int[9][9];
 		int[] rowNumbers = new int[9];
