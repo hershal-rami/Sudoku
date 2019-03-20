@@ -55,15 +55,18 @@ public class Sudoku {
 			System.out.println("Unsolvable board. Exiting out.");
 			return;
 		}
-
+		
+		checkRowsCols();
+		checkSquares();
 		// backtrackAlgorithm();
-		// printBoard();
+		printBoard();
 
 	}
 
 	/**
 	 * Finds all possible values for each cell on the board, and fills in any cells
-	 * which only contain one possible value
+	 * which only contain one possible value. If there are no possible values for a
+	 * cell, the method returns false as the board is unsolvable.
 	 */
 	private boolean fillSingletons() {
 		// for each cell (set of coords), there is a array of possible values
@@ -146,7 +149,8 @@ public class Sudoku {
 					count = 0;
 					for (int row = i; row < i + 3; row++) {
 						for (int col = j; col < j + 3; col++) { // loops through all 9 cells within a square
-							if(possibleValues[row][col][num - 1] == num) { // if a number is a possible value for this cell
+							if (possibleValues[row][col][num - 1] == num) { // if a number is a possible value for this
+																			// cell
 								count++;
 								rowIndex = row;
 								colIndex = col;
@@ -154,7 +158,7 @@ public class Sudoku {
 							}
 						}
 					}
-					if(count == 1) { // this means num is only possible for one cell in this square
+					if (count == 1) { // this means num is only possible for one cell in this square
 						board[rowIndex][colIndex] = numToPlace;
 					}
 				}
@@ -253,7 +257,7 @@ public class Sudoku {
 		// check square
 		int[] topLeftBoxIndex = getTopLeftBoxIndex(rowIndex, colIndex);
 		for (int i = topLeftBoxIndex[0]; i < topLeftBoxIndex[0] + 3; i++)
-			for (int j = topLeftBoxIndex[1]; i < topLeftBoxIndex[1] + 3; i++)
+			for (int j = topLeftBoxIndex[1]; j < topLeftBoxIndex[1] + 3; j++)
 				if (board[i][j] == numToPlace)
 					return false;
 
