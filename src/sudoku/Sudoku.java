@@ -39,6 +39,7 @@ public class Sudoku {
 		Sudoku puzzle = new Sudoku(readBoardFromFile(fileName));
 		printBoard();
 		puzzle.solve();
+		System.out.println();
 	}
 
 	public Sudoku(int[][] board) {
