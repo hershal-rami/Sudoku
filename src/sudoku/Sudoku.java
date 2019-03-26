@@ -51,25 +51,25 @@ public class Sudoku {
 	 * This method will print out a solution for the stored board
 	 */
 	private void solve() {
-		if (!fillSingletons()) {
-			System.out.println("Unsolvable board. Exiting out.");
+		// find all possible values and fill all initial naked singles
+		if (!fillPossibleValues()) {
+			System.out.println("The board has no solutions. Exiting out.");
 			return;
 		}
 
-		checkRowsCols();
-		checkSquares();
+//		checkRowsCols();
+//		checkSquares();
 		// backtrackAlgorithm();
 		printBoard();
 
 	}
-		
-	
+
 	/**
 	 * Finds all possible values for each cell on the board, and fills in any cells
 	 * which only contain one possible value. If there are no possible values for a
 	 * cell, the method returns false as the board is unsolvable.
 	 */
-	private boolean fillSingletons() {
+	private boolean fillPossibleValues() {
 		// for each cell (set of coords), there is a array of possible values
 		int row = 0, col = 0, index = 0, count = 0;
 
@@ -77,8 +77,9 @@ public class Sudoku {
 		 * Loops through every cell on the board and checks if any numbers 1-9 are valid
 		 * at that cell. If they are, it adds them to an array of possible values
 		 */
-		for (int i = 0; i < possibleValues.length; i++) {
+		outerLoop: for (int i = 0; i < possibleValues.length; i++) {
 			for (int j = 0; j < possibleValues[0].length; j++) {
+				count = 0;
 				if (board[i][j] != 0)
 					continue;
 				for (int k = 0; k < 9; k++) {
@@ -94,31 +95,23 @@ public class Sudoku {
 				if (count == 0) { // that cell has no valid placements, therefore the board is invalid
 					System.out.println("This board is invalid. There are no possible values at (" + i + ", " + j + ")");
 					return false;
-				} else if (count == 1) { // that cell is a singleton; it only has one valid placement
-					System.out.println("Singleton at " + row + ", " + col + ", " + index);
-					board[row][col] = possibleValues[row][col][index];
-					updatePossibleValues(row, col, index);
+				} else if (count == 1) {
+					/*
+					 * If a cell only has one possible value, it is a naked single. Fill the single,
+					 * print out its location, then update other possible values accordingly. Then,
+					 * restart the loop. Once all recursive calls return, they will simply break out
+					 * of the loop to avoid running the loop more than necessary
+					 */
+					board[row][col] = index + 1;
+					System.out.println("Singleton at " + row + ", " + col + ", " + (index + 1));
+					updatePossibleValues(row, col, index + 1);
+					fillPossibleValues();
+					break outerLoop;
 				}
 
 			}
 		}
 		return true;
-	}
-	
-	private void checkCellForSingletons(int row, int col) {
-		int count = 0, num = 0;
-		for(int k = 0; k < 9; k++) {
-			if(possibleValues[row][col][k] != 0) {
-				count++;
-				num = k;
-			}
-		}
-		if(count == 1) {
-			board[row][col] = possibleValues[row][col][num];
-		}
-		if(count == 0) {
-			System.out.printf("Error: possibleValues at %d, %d is empty\n", row, col);
-		}
 	}
 
 	/**
@@ -145,8 +138,7 @@ public class Sudoku {
 				}
 				if (count == 1) { // this means num is only possible for one cell in this row
 					board[i][col] = index;
-					//TODO this is causing false numbers to print?
-//					updatePossibleValues(i, col, index);
+					updatePossibleValues(i, col, index);
 				}
 				if (count2 == 1) { // this means num is only possible for one cell in this col
 					board[row2][col2] = index2;
@@ -198,18 +190,22 @@ public class Sudoku {
 	 */
 	private void updatePossibleValues(int rowIndex, int colIndex, int numPlaced) {
 		int[] topLeftBoxIndex = getTopLeftBoxIndex(rowIndex, colIndex);
-		
-		for(int row = topLeftBoxIndex[0]; row < topLeftBoxIndex[0] + 3; row++) {
-			for(int col = topLeftBoxIndex[1]; col < topLeftBoxIndex[1] + 3; col ++) {
-				possibleValues[row][col][numPlaced] = 0;
+
+		// removes numPlaced from possibleValues for the square
+		for (int row = topLeftBoxIndex[0]; row < topLeftBoxIndex[0] + 3; row++) {
+			for (int col = topLeftBoxIndex[1]; col < topLeftBoxIndex[1] + 3; col++) {
+				possibleValues[row][col][numPlaced - 1] = 0;
 			}
 		}
-		
-		for(int i = 0; i < 9; i++) {
-			possibleValues[rowIndex][i][numPlaced] = 0;
-			checkCellForSingletons(rowIndex, i);
-			possibleValues[i][colIndex][numPlaced] = 0;
-			checkCellForSingletons(i, colIndex);
+
+		// removes numPlaced from possibleValues for the row/column
+		for (int i = 0; i < 9; i++) {
+			if (board[rowIndex][i] == 0) {
+				possibleValues[rowIndex][i][numPlaced - 1] = 0;
+			}
+			if (board[i][colIndex] == 0) {
+				possibleValues[i][colIndex][numPlaced - 1] = 0;
+			}
 		}
 	}
 
