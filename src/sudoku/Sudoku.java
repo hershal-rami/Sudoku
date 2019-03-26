@@ -12,6 +12,7 @@ public class Sudoku {
 
 	static String fileName = "Sudoku Boards";
 	final boolean print = true;
+	final int maxIterations = 15;
 
 	/*
 	 * 3 0 6 | 5 0 8 | 4 0 0
@@ -40,10 +41,10 @@ public class Sudoku {
 		Scanner scan = new Scanner(System.in);
 		System.out.println("Please enter the name of the file with the Sudoku puzzle to solve.");
 		fileName = scan.nextLine();
+		scan.close();
 		Sudoku puzzle = new Sudoku(readBoardFromFile(fileName));
 		printBoard();
 		puzzle.solve();
-		scan.close();
 	}
 
 	public Sudoku(int[][] board) {
@@ -52,7 +53,10 @@ public class Sudoku {
 	}
 
 	/**
-	 * This method will print out a solution for the stored board
+	 * First attempts to solve the puzzle using the logic algorithm. If that takes
+	 * too long, it switches to the backtracking algorithm from the current board
+	 * state. This method will print out a solution for the stored board and the
+	 * total time it took to solve the puzzle.
 	 */
 	private void solve() {
 		long startTime = System.currentTimeMillis();
@@ -62,20 +66,34 @@ public class Sudoku {
 			return;
 		}
 
+		int loopCounter = 0;
 		while (beforeBacktrack()) {
+			if (loopCounter > maxIterations) {
+				System.out.printf(
+						"The logic algorithm requires more than %d iterations to solve. Switching to backtracking algorithm\n",
+						maxIterations);
+				break;
+			}
 			fillPossibleValues();
 			checkRowsCols();
 			checkSquares();
+			loopCounter++;
 		}
+
+		if (loopCounter > 15)
+			backtrackAlgorithm(-1, -1);
 
 		printBoard();
 
 		System.out.println("The Sudoku puzzle has been solved. Total Time Elapsed: "
 				+ (System.currentTimeMillis() - startTime) + " ms");
 
-//		backtrackAlgorithm(-1, -1);
 	}
 
+	/**
+	 * 
+	 * @return True if the board state can still be solved, false if solved
+	 */
 	private boolean beforeBacktrack() {
 		for (int i = 0; i < board.length; i++) {
 			for (int j = 0; j < board[0].length; j++) {
@@ -171,13 +189,13 @@ public class Sudoku {
 				if (count == 1) { // this means num is only possible for one cell in this row
 					board[i][col] = index;
 					if (print)
-						System.out.println("Hidden singleton at " + i + ", " + col + ": Value " + index);
+						System.out.println("Hidden Singleton at " + i + ", " + col + ": Value " + index);
 					updatePossibleValues(i, col, index);
 				}
 				if (count2 == 1) { // this means num is only possible for one cell in this col
 					board[row2][col2] = index2;
 					if (print)
-						System.out.println("Hidden singleton at " + row2 + ", " + col2 + ": Value " + index2);
+						System.out.println("Hidden Singleton at " + row2 + ", " + col2 + ": Value " + index2);
 					updatePossibleValues(row2, col2, index2);
 				}
 			}
@@ -211,7 +229,7 @@ public class Sudoku {
 						board[rowIndex][colIndex] = numToPlace;
 						if (print)
 							System.out.println(
-									"Hidden singleton at " + rowIndex + ", " + colIndex + ": Value " + numToPlace);
+									"Hidden Singleton at " + rowIndex + ", " + colIndex + ": Value " + numToPlace);
 						updatePossibleValues(rowIndex, colIndex, numToPlace);
 					}
 				}
@@ -284,20 +302,35 @@ public class Sudoku {
 		return true;
 	}
 
+	/**
+	 * 0-indexed
+	 * 
+	 * @param row Current row index
+	 * @param col Current col index
+	 * @return int[row, col] of the next cell
+	 */
 	private int[] findNextIndex(int row, int col) {
-		// 0-indexed
 		if (row == -1 && col == -1)
 			return new int[] { 0, 0 };
-		
+
 		if (col + 1 >= 9) {
 			col = 0;
 			row++;
 		} else {
 			col++;
 		}
-		return new int[] { row, col };
+		
+		return new int[] {row, col};
 	}
 
+	/**
+	 * Places valid numbers in each open cell until the puzzle is solved,
+	 * backtracking if a puzzle state becomes unsolvable
+	 * 
+	 * @param currentRow Current row index
+	 * @param currentCol Current col index
+	 * @return true once the algorithm is complete and the puzzle is solved
+	 */
 	private boolean backtrackAlgorithm(int currentRow, int currentCol) {
 		int[] coords = findNextIndex(currentRow, currentCol);
 		int rowIndex = coords[0];
@@ -311,14 +344,14 @@ public class Sudoku {
 			backtrackAlgorithm(rowIndex, colIndex);
 		}
 
-		// test numbers in that cell until they are valid, then place it and move on
-		for (int i = 1; i < 10; i++) {
+		// places a valid number in a cell and moves on
+		for (int i = 0; i < 9; i++) {
 			if (possibleValues[rowIndex][colIndex][i] == 0) {
 				continue;
 			}
-			if (isValidPlacement(rowIndex, colIndex, i)) {
+			if (isValidPlacement(rowIndex, colIndex, i + 1)) {
 				board[rowIndex][colIndex] = i;
-				updatePossibleValues(rowIndex, colIndex, i);
+				updatePossibleValues(rowIndex, colIndex, i + 1);
 
 				coords = findNextIndex(rowIndex, colIndex);
 				rowIndex = coords[0];
@@ -434,25 +467,34 @@ public class Sudoku {
 		return topLeftBoxIndex;
 	}
 
+	/**
+	 * Scans the file to read in numbers and returns the 2D board array
+	 * @param fileName
+	 * @return board array
+	 */
 	private static int[][] readBoardFromFile(String fileName) {
 		int[][] board = new int[9][9];
 		int[] rowNumbers = new int[9];
 		Scanner scan = null;
 		try {
 			scan = new Scanner(new File(fileName));
-			int count = -1;
-			while (scan.hasNextLine()) {
-				String[] row = scan.nextLine().trim().split(", ");
-				for (int i = 0; i < row.length; i++) {
-					rowNumbers[i] = Integer.parseInt(row[i]);
-					if (row.length - 1 == i)
-						count++;
-				}
-				board[count] = Arrays.copyOf(rowNumbers, rowNumbers.length);
-			}
 		} catch (FileNotFoundException e) {
+			System.out.println("The file was not found. Exiting out.");
 			e.printStackTrace();
+			return null;
 		}
+
+		int count = -1;
+		while (scan.hasNextLine()) {
+			String[] row = scan.nextLine().trim().split(", ");
+			for (int i = 0; i < row.length; i++) {
+				rowNumbers[i] = Integer.parseInt(row[i]);
+				if (row.length - 1 == i)
+					count++;
+			}
+			board[count] = Arrays.copyOf(rowNumbers, rowNumbers.length);
+		}
+
 		scan.close();
 		return board;
 	}
