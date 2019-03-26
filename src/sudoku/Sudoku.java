@@ -9,6 +9,23 @@ public class Sudoku {
 
 	static int[][] board;
 	static int[][][] possibleValues; // row, col, set of values
+	
+	
+	/*
+	 * -----------------------
+	| 3 - 6 |5 7 8 |4 - - |
+	| 5 2 - |- - - |- - - |
+	| 4 8 7 |6 2 9 |5 3 1 |
+	|---------------------|
+	| - - 3 |- 1 - |- 8 - |
+	| 9 - - |8 6 3 |- - 5 |
+	| - 5 - |- 9 - |6 - - |
+	|---------------------|
+	| 1 3 - |- - - |2 5 - |
+	| - - - |- - - |- 7 4 |
+	| - - 5 |2 - 6 |3 - - |
+	-----------------------
+	 */
 
 	final static String fileName = "Sudoku Boards";
 
@@ -56,11 +73,21 @@ public class Sudoku {
 			System.out.println("The board has no solutions. Exiting out.");
 			return;
 		}
-
-//		checkRowsCols();
-//		checkSquares();
-		// backtrackAlgorithm();
-		printBoard();
+		
+		while (beforeBacktrack()) {
+			fillPossibleValues();
+			checkRowsCols();
+			checkSquares();
+			checkRowsCols();
+			checkSquares();
+			checkRowsCols();
+			checkSquares();
+			checkRowsCols();
+			checkSquares();
+			printBoard();
+		}
+		
+//		 backtrackAlgorithm();
 
 	}
 
@@ -138,14 +165,35 @@ public class Sudoku {
 				}
 				if (count == 1) { // this means num is only possible for one cell in this row
 					board[i][col] = index;
+					System.out.println("Hidden singleton at " + i + ", " + col + ", num " + index);
 					updatePossibleValues(i, col, index);
 				}
 				if (count2 == 1) { // this means num is only possible for one cell in this col
 					board[row2][col2] = index2;
+					System.out.println("Hidden singleton at " + row2 + ", " + col2 + ", num " + index2);
 					updatePossibleValues(row2, col2, index2);
 				}
 			}
 		}
+	}
+	
+	private boolean beforeBacktrack() {
+		for (int i=0;i<board.length;i++) {
+			for (int j = 0; j < board[0].length; j++) {
+				if (board[i][j] != 0) {
+					continue;
+				}
+				int count = 0;
+				for (int k=1;k<=9;k++) {
+					if (possibleValues[i][j][k-1] != 0) 
+						count++;
+				}
+				if (count < 2) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -173,6 +221,7 @@ public class Sudoku {
 					}
 					if (count == 1) { // this means num is only possible for one cell in this square
 						board[rowIndex][colIndex] = numToPlace;
+						System.out.println("Hidden singleton at " + rowIndex + ", " + colIndex + ", num " + numToPlace);
 						updatePossibleValues(rowIndex, colIndex, numToPlace);
 					}
 				}
@@ -206,6 +255,11 @@ public class Sudoku {
 			if (board[i][colIndex] == 0) {
 				possibleValues[i][colIndex][numPlaced - 1] = 0;
 			}
+		}
+		
+		// removes any other possible values for the cell
+		for (int i=0;i<possibleValues[rowIndex][colIndex].length;i++) {
+			possibleValues[rowIndex][colIndex][i] = 0;
 		}
 	}
 
@@ -412,17 +466,19 @@ public class Sudoku {
 	 * Prints out the entire board
 	 */
 	private static void printBoard() {
-		System.out.println("----------------------");
+		System.out.println("-----------------------");
 		for (int i = 0; i < board.length; i++) {
+			if (i==3 || i==6) System.out.println("|---------------------|");
 			System.out.print("| ");
 			for (int j = 0; j < board[0].length; j++) {
+				if (j==3 || j==6) System.out.print("|");
 				if (board[i][j] == 0)
 					System.out.print("- ");
 				else
 					System.out.print(board[i][j] + " ");
 			}
-			System.out.println(" |");
+			System.out.println("|");
 		}
-		System.out.println("----------------------");
+		System.out.println("-----------------------");
 	}
 }
