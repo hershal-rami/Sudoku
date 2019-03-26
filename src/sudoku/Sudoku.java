@@ -18,7 +18,7 @@ public class Sudoku {
 	 * 5 2 0 | 0 0 0 | 0 0 0
 	 * 
 	 * 0 8 7 | 0 0 0 | 0 3 1
-	 * 	
+	 * 
 	 * ---------------------
 	 * 
 	 * 0 0 3 | 0 1 0 | 0 8 0
@@ -55,14 +55,15 @@ public class Sudoku {
 			System.out.println("Unsolvable board. Exiting out.");
 			return;
 		}
-		
+
 		checkRowsCols();
 		checkSquares();
 		// backtrackAlgorithm();
 		printBoard();
 
 	}
-
+		
+	
 	/**
 	 * Finds all possible values for each cell on the board, and fills in any cells
 	 * which only contain one possible value. If there are no possible values for a
@@ -96,18 +97,35 @@ public class Sudoku {
 				} else if (count == 1) { // that cell is a singleton; it only has one valid placement
 					System.out.println("Singleton at " + row + ", " + col + ", " + index);
 					board[row][col] = possibleValues[row][col][index];
+					updatePossibleValues(row, col, index);
 				}
 
 			}
 		}
 		return true;
 	}
+	
+	private void checkCellForSingletons(int row, int col) {
+		int count = 0, num = 0;
+		for(int k = 0; k < 9; k++) {
+			if(possibleValues[row][col][k] != 0) {
+				count++;
+				num = k;
+			}
+		}
+		if(count == 1) {
+			board[row][col] = possibleValues[row][col][num];
+		}
+		if(count == 0) {
+			System.out.printf("Error: possibleValues at %d, %d is empty\n", row, col);
+		}
+	}
 
 	/**
 	 * Checks each row to see if there are any numbers which are only possible
 	 * values in one cell
 	 */
-	public void checkRowsCols() {
+	private void checkRowsCols() {
 		int count = 0, count2 = 0, row2 = 0, col = 0, col2 = 0, index = 0, index2 = 0;
 		for (int i = 0; i < board.length; i++) {
 			for (int num = 1; num <= 9; num++) {
@@ -127,9 +145,12 @@ public class Sudoku {
 				}
 				if (count == 1) { // this means num is only possible for one cell in this row
 					board[i][col] = index;
+					//TODO this is causing false numbers to print?
+//					updatePossibleValues(i, col, index);
 				}
 				if (count2 == 1) { // this means num is only possible for one cell in this col
 					board[row2][col2] = index2;
+					updatePossibleValues(row2, col2, index2);
 				}
 			}
 		}
@@ -139,7 +160,7 @@ public class Sudoku {
 	 * Checks each square to find numbers which are only possible values for one
 	 * cell in the square
 	 */
-	public void checkSquares() {
+	private void checkSquares() {
 		int count = 0, rowIndex = 0, colIndex = 0, numToPlace = 0;
 		// i and j are for the top left indexes of all 9 squares
 		// row and col are for the coords of each cell within every square
@@ -160,9 +181,35 @@ public class Sudoku {
 					}
 					if (count == 1) { // this means num is only possible for one cell in this square
 						board[rowIndex][colIndex] = numToPlace;
+						updatePossibleValues(rowIndex, colIndex, numToPlace);
 					}
 				}
 			}
+		}
+	}
+
+	/**
+	 * This method should be called after placing a number to update possible values
+	 * in the row, col, and square of that number.
+	 * 
+	 * @param rowIndex  The row index of the number that was just placed
+	 * @param colIndex  The col index of the number that was just placed
+	 * @param numPlaced The number that was just placed
+	 */
+	private void updatePossibleValues(int rowIndex, int colIndex, int numPlaced) {
+		int[] topLeftBoxIndex = getTopLeftBoxIndex(rowIndex, colIndex);
+		
+		for(int row = topLeftBoxIndex[0]; row < topLeftBoxIndex[0] + 3; row++) {
+			for(int col = topLeftBoxIndex[1]; col < topLeftBoxIndex[1] + 3; col ++) {
+				possibleValues[row][col][numPlaced] = 0;
+			}
+		}
+		
+		for(int i = 0; i < 9; i++) {
+			possibleValues[rowIndex][i][numPlaced] = 0;
+			checkCellForSingletons(rowIndex, i);
+			possibleValues[i][colIndex][numPlaced] = 0;
+			checkCellForSingletons(i, colIndex);
 		}
 	}
 
@@ -182,6 +229,7 @@ public class Sudoku {
 		for (int i = 1; i < 10; i++) {
 			if (isValidPlacement(row, col, i)) {
 				board[row][col] = i;
+				updatePossibleValues(row, col, i);
 				findNextIndex();
 				if (!backtrackAlgorithm())
 					break;
@@ -270,7 +318,7 @@ public class Sudoku {
 	 * 
 	 * @return true if valid, false otherwise
 	 */
-	public boolean isValid() {
+	private boolean isValid() {
 		for (int i = 0; i < board.length; i++) {
 			if (!isValidRow(i) || !isValidColumn(i))
 				return false;
@@ -367,7 +415,7 @@ public class Sudoku {
 	/**
 	 * Prints out the entire board
 	 */
-	public static void printBoard() {
+	private static void printBoard() {
 		System.out.println("----------------------");
 		for (int i = 0; i < board.length; i++) {
 			System.out.print("| ");
