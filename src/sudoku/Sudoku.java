@@ -503,14 +503,14 @@ public class Sudoku {
 	 * Prints out the entire board
 	 */
 	private static void printBoard() {
-		System.out.println("-----------------------");
+		System.out.println("-------------------------");
 		for (int i = 0; i < board.length; i++) {
 			if (i == 3 || i == 6)
-				System.out.println("|---------------------|");
+				System.out.println("|-----------------------|");
 			System.out.print("| ");
 			for (int j = 0; j < board[0].length; j++) {
 				if (j == 3 || j == 6)
-					System.out.print("|");
+					System.out.print("| ");
 				if (board[i][j] == 0)
 					System.out.print("- ");
 				else
@@ -518,6 +518,6 @@ public class Sudoku {
 			}
 			System.out.println("|");
 		}
-		System.out.println("-----------------------");
+		System.out.println("-------------------------");
 	}
 }
