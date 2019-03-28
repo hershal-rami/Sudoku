@@ -14,38 +14,39 @@ public class Sudoku {
 	final static boolean print = true;
 	final static int maxIterations = 15;
 
-	/*
-	 * 3 0 6 | 5 0 8 | 4 0 0
-	 * 
-	 * 5 2 0 | 0 0 0 | 0 0 0
-	 * 
-	 * 0 8 7 | 0 0 0 | 0 3 1
-	 * 
-	 * ---------------------
-	 * 
-	 * 0 0 3 | 0 1 0 | 0 8 0
-	 * 
-	 * 9 0 0 | 8 6 3 | 0 0 5
-	 * 
-	 * 0 5 0 | 0 9 0 | 6 0 0
-	 * 
-	 * ---------------------
-	 * 
-	 * 1 3 0 | 0 0 0 | 2 5 0
-	 * 
-	 * 0 0 0 | 0 0 0 | 0 7 4
-	 * 
-	 * 0 0 5 | 2 0 6 | 3 0 0
-	 */
 	public static void main(String[] args) {
 		Scanner scan = new Scanner(System.in);
-		System.out.println("Please enter the name of the file with the Sudoku puzzle to solve.");
-		fileName = scan.nextLine();
+		int choice = 0;
+		
+		// Gets user input
+		while(choice != 1 || choice != 2) {
+			System.out.println("Would you like to 1) Generate a puzzle or 2) Solve a puzzle?");
+			choice = scan.nextInt();
+			scan.nextLine();
+			if(choice != 1 || choice != 2) {
+				System.out.println("Error: Please enter a valid input");
+			}
+		}
+		
+		switch(choice) {
+		case 1: // Generate a puzzle
+			System.out.println("How many cells should be empty in this puzzle?");
+			int emptyCells = scan.nextInt(); scan.nextLine();
+			int[][] puzzle = generatePuzzle(generateSolvedBoard(), emptyCells);
+			printBoard(puzzle);
+			break;
+		case 2: // Solve a puzzle
+			System.out.println("Please enter the name of the file with the Sudoku puzzle to solve.");
+			fileName = scan.nextLine();
+			board = readBoardFromFile(fileName);
+			possibleValues = new int[board.length][board[0].length][9];
+			printBoard(board);
+			solve();
+			break;
+		}
+		
 		scan.close();
-		board = readBoardFromFile(fileName);
-		possibleValues = new int[board.length][board[0].length][9];
-		printBoard();
-		solve();
+		
 	}
 
 	public Sudoku(int[][] board) {
@@ -74,11 +75,9 @@ public class Sudoku {
 		int loopCounter = 0;
 		while (beforeBacktrack()) {
 			if (loopCounter > maxIterations) {
-				System.out.printf(
-						"The logic algorithm requires more than %d iterations to solve.\n",
-						maxIterations);
+				System.out.printf("The logic algorithm requires more than %d iterations to solve.\n", maxIterations);
 				System.out.println("Logic Algorithm Board State: ");
-				printBoard();
+				printBoard(board);
 				System.out.println("Logic Algorithm Time Elapsed: " + (System.currentTimeMillis() - startTime) + " ms");
 				System.out.println("Switching to backtracking algorithm");
 				startTime = System.currentTimeMillis();
@@ -91,7 +90,7 @@ public class Sudoku {
 			loopCounter++;
 		}
 
-		printBoard();
+		printBoard(board);
 
 		System.out.println("The Sudoku puzzle has been solved.\nTotal Time Elapsed: "
 				+ (System.currentTimeMillis() - startTime) + " ms");
@@ -486,7 +485,7 @@ public class Sudoku {
 	/**
 	 * Prints out the entire board
 	 */
-	private static void printBoard() {
+	private static void printBoard(int[][] board) {
 		System.out.println("-------------------------");
 		for (int i = 0; i < board.length; i++) {
 			if (i == 3 || i == 6)
@@ -504,12 +503,48 @@ public class Sudoku {
 		}
 		System.out.println("-------------------------");
 	}
-	
-	private static int[][] generatePuzzle() {
-		for(int i = 0; i < 9; i++) {
-			for(int j = 0; j < 9; j++) {
-				
+
+	/**
+	 * Generates a new solved board state through a very not robust and expensive
+	 * manner
+	 * 
+	 * @return int[][] puzzle containing a valid and complete board
+	 */
+	private static int[][] generateSolvedBoard() {
+		int[][] board = new int[9][9];
+		for (int i = 0; i < 9; i++) {
+			for (int j = 0; j < 9; j++) {
+				while (board[i][j] == 0) {
+					int num = (int) (Math.random() * 9) + 1; // returns a number between 1 and 9
+
+					if (isValidPlacement(i, j, num)) {
+						board[i][j] = num;
+					}
+
+				}
 			}
 		}
+		return board;
+	}
+
+	/**
+	 * Loops through and sets random valus to 0 to make this board into a puzzle
+	 * 
+	 * @param board      The 2D array containing a solved board state
+	 * @param emptyCells The number of empty cells the puzzle should contain
+	 * @return A 2D array containing a puzzle ready to be solved
+	 */
+	private static int[][] generatePuzzle(int[][] board, int emptyCells) {
+		int count = 0;
+		while (count < emptyCells) {
+			int randomRow = (int) (Math.random() * 9); // returns a number between 0 and 8
+			int randomCol = (int) (Math.random() * 9); // returns a number between 0 and 8
+
+			if (board[randomRow][randomCol] != 0) { // this is a cell we can make empty
+				board[randomRow][randomCol] = 0;
+				count++;
+			}
+		}
+		return board;
 	}
 }
