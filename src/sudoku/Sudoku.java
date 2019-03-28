@@ -19,11 +19,11 @@ public class Sudoku {
 		int choice = 0;
 		
 		// Gets user input
-		while(choice != 1 || choice != 2) {
+		while(choice != 1 && choice != 2) {
 			System.out.println("Would you like to 1) Generate a puzzle or 2) Solve a puzzle?");
 			choice = scan.nextInt();
 			scan.nextLine();
-			if(choice != 1 || choice != 2) {
+			if(choice != 1 && choice != 2) {
 				System.out.println("Error: Please enter a valid input");
 			}
 		}
@@ -33,6 +33,7 @@ public class Sudoku {
 			System.out.println("How many cells should be empty in this puzzle?");
 			int emptyCells = scan.nextInt(); scan.nextLine();
 			int[][] puzzle = generatePuzzle(generateSolvedBoard(), emptyCells);
+			System.out.println("printing puzzle");
 			printBoard(puzzle);
 			break;
 		case 2: // Solve a puzzle
@@ -41,17 +42,12 @@ public class Sudoku {
 			board = readBoardFromFile(fileName);
 			possibleValues = new int[board.length][board[0].length][9];
 			printBoard(board);
-			solve();
+			solve(board);
 			break;
 		}
 		
 		scan.close();
 		
-	}
-
-	public Sudoku(int[][] board) {
-		Sudoku.board = board;
-		possibleValues = new int[board.length][board[0].length][9];
 	}
 
 	/**
@@ -60,14 +56,14 @@ public class Sudoku {
 	 * state. This method will print out a solution for the stored board and the
 	 * total time it took to solve the puzzle.
 	 */
-	private static void solve() {
+	private static void solve(int[][] board) {
 		if (!isValid()) {
 			System.out.println("The board has no solutions. Exiting out.");
 			return;
 		}
 		long startTime = System.currentTimeMillis();
 		// find all possible values and fill all initial naked singles
-		if (!fillPossibleValues()) {
+		if (!fillPossibleValues(board)) {
 			System.out.println("The board has no solutions. Exiting out.");
 			return;
 		}
@@ -81,10 +77,10 @@ public class Sudoku {
 				System.out.println("Logic Algorithm Time Elapsed: " + (System.currentTimeMillis() - startTime) + " ms");
 				System.out.println("Switching to backtracking algorithm");
 				startTime = System.currentTimeMillis();
-				bruteForce();
+				bruteForce(board);
 				break;
 			}
-			fillPossibleValues();
+			fillPossibleValues(board);
 			checkRowsCols();
 			checkSquares();
 			loopCounter++;
@@ -125,7 +121,7 @@ public class Sudoku {
 	 * which only contain one possible value. If there are no possible values for a
 	 * cell, the method returns false as the board is unsolvable.
 	 */
-	private static boolean fillPossibleValues() {
+	private static boolean fillPossibleValues(int[][] board) {
 		// for each cell (set of coords), there is a array of possible values
 		int row = 0, col = 0, index = 0, count = 0;
 
@@ -139,7 +135,7 @@ public class Sudoku {
 				if (board[i][j] != 0)
 					continue;
 				for (int k = 0; k < 9; k++) {
-					if (isValidPlacement(i, j, k + 1)) {
+					if (isValidPlacement(i, j, k + 1, board)) {
 						count++;
 						possibleValues[i][j][k] = k + 1;
 						row = i;
@@ -162,7 +158,7 @@ public class Sudoku {
 					if (print)
 						System.out.println("Naked Singleton at " + row + ", " + col + ": Value " + (index + 1));
 					updatePossibleValues(row, col, index + 1);
-					fillPossibleValues();
+					fillPossibleValues(board);
 					break outerLoop;
 				}
 
@@ -287,7 +283,7 @@ public class Sudoku {
 	 * @param numToPlace
 	 * @return
 	 */
-	private static boolean isValidPlacement(int rowIndex, int colIndex, int numToPlace) {
+	private static boolean isValidPlacement(int rowIndex, int colIndex, int numToPlace, int[][] board) {
 		// check row
 		for (int number : board[rowIndex])
 			if (number == numToPlace)
@@ -313,14 +309,14 @@ public class Sudoku {
 	 * Places valid numbers in each open cell until the puzzle is solved,
 	 * backtracking if a puzzle state becomes unsolvable
 	 */
-	public static boolean bruteForce() {
+	public static boolean bruteForce(int[][] board) {
 		for (int i = 0; i < 9; i++) {
 			for (int j = 0; j < 9; j++) {
 				if (board[i][j] == 0) {
 					for (int k = 1; k <= 9; k++) {
-						if (isValidPlacement(i, j, k)) {
+						if (isValidPlacement(i, j, k, board)) {
 							board[i][j] = k;
-							if (bruteForce()) {
+							if (bruteForce(board)) {
 								return true;
 							} else {
 								board[i][j] = 0;
@@ -517,7 +513,7 @@ public class Sudoku {
 				while (board[i][j] == 0) {
 					int num = (int) (Math.random() * 9) + 1; // returns a number between 1 and 9
 
-					if (isValidPlacement(i, j, num)) {
+					if (isValidPlacement(i, j, num, board)) {
 						board[i][j] = num;
 					}
 
@@ -539,7 +535,7 @@ public class Sudoku {
 		while (count < emptyCells) {
 			int randomRow = (int) (Math.random() * 9); // returns a number between 0 and 8
 			int randomCol = (int) (Math.random() * 9); // returns a number between 0 and 8
-
+		
 			if (board[randomRow][randomCol] != 0) { // this is a cell we can make empty
 				board[randomRow][randomCol] = 0;
 				count++;
