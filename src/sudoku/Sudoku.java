@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.Scanner;
+import java.util.TreeSet;
 
 public class Sudoku {
 
@@ -13,9 +14,11 @@ public class Sudoku {
 	static String fileName = "Sudoku Boards";
 	final static boolean print = true;
 	final static int maxIterations = 15;
+	static int generateCount = 0;
+	static Scanner scan;
 
 	public static void main(String[] args) {
-		Scanner scan = new Scanner(System.in);
+		scan = new Scanner(System.in);
 		int choice = 0;
 
 		// Gets user input
@@ -33,7 +36,15 @@ public class Sudoku {
 			System.out.println("How many cells should be empty in this puzzle?");
 			int emptyCells = scan.nextInt();
 			scan.nextLine();
+			while (emptyCells > 81) {
+				System.out.println("There are only 81 cells. Enter a number less than 81.");
+				emptyCells = scan.nextInt();
+				scan.nextLine();
+			}
+			System.out.println();
+
 			int[][] puzzle = generatePuzzle(generateSolvedBoard(), emptyCells);
+			System.out.println("Made Board after " + generateCount + " attempts.");
 			System.out.println("printing puzzle");
 			printBoard(puzzle);
 			break;
@@ -514,15 +525,27 @@ public class Sudoku {
 	 */
 	private static int[][] generateSolvedBoard() {
 		int[][] board = new int[9][9];
-		for (int i = 0; i < 9; i++) {
+		outer: for (int i = 0; i < 9; i++) {
 			for (int j = 0; j < 9; j++) {
+				TreeSet<Integer> guessed = new TreeSet<Integer>();
 				while (board[i][j] == 0) {
-					int num = (int) (Math.random() * 9) + 1; // returns a number between 1 and 9
-
-					if (isValidPlacement(i, j, num, board)) {
-						board[i][j] = num;
+					String stuck = "";
+					for (int k = 1; k <= 9; k++) {
+						if (guessed.contains(k))
+							stuck += k;
 					}
-
+					if (stuck.equals("123456789")) {
+						// impossible layout
+						board = generateSolvedBoard();
+						generateCount++;
+						break outer;
+					}
+					int num = (int) (Math.random() * 9) + 1; // returns a number between 1 and 9
+					if (guessed.add(num)) {
+						if (isValidPlacement(i, j, num, board)) {
+							board[i][j] = num;
+						}
+					}
 				}
 			}
 		}
