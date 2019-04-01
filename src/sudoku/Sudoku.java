@@ -3,8 +3,8 @@ package sudoku;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Scanner;
+import java.util.TreeSet;
 
 public class Sudoku {
 
@@ -14,9 +14,11 @@ public class Sudoku {
 	static String fileName = "Sudoku Boards";
 	final static boolean print = true;
 	final static int maxIterations = 15;
+	static int generateCount = 0;
+	static Scanner scan;
 
 	public static void main(String[] args) {
-		Scanner scan = new Scanner(System.in);
+		scan = new Scanner(System.in);
 		int choice = 0;
 		
 		// Gets user input
@@ -32,10 +34,14 @@ public class Sudoku {
 		switch(choice) {
 		case 1: // Generate a puzzle
 			System.out.println("How many cells should be empty in this puzzle?");
-			int emptyCells = scan.nextInt(); 
-			scan.nextLine();
+			int emptyCells = scan.nextInt(); scan.nextLine();
+			while (emptyCells > 81) {
+				System.out.println("There are only 81 cells. Enter a number less than 81.");
+				emptyCells = scan.nextInt(); scan.nextLine();
+			}
 			System.out.println();
 			int[][] puzzle = generatePuzzle(generateSolvedBoard(), emptyCells);
+			System.out.println("Made Board after " + generateCount + " attempts.");
 			System.out.println("printing puzzle");
 			printBoard(puzzle);
 			break;
@@ -511,22 +517,30 @@ public class Sudoku {
 	 */
 	private static int[][] generateSolvedBoard() {
 		int[][] board = new int[9][9];
+		outer:
 		for (int i = 0; i < 9; i++) {
 			for (int j = 0; j < 9; j++) {
-				HashSet<Integer> guessed = new HashSet<Integer>();
+				TreeSet<Integer> guessed = new TreeSet<Integer>();
 				while (board[i][j] == 0) {
-					boolean notGuessed = true;
+					String stuck = "";
+					for (int k=1;k<=9;k++) {
+						if (guessed.contains(k)) stuck += k;
+					}
+					if (stuck.equals("123456789")) {
+						// impossible layout
+						board = generateSolvedBoard();
+						generateCount++;
+						break outer;
+					}
 					int num = (int) (Math.random() * 9) + 1; // returns a number between 1 and 9
 					if (guessed.add(num)) {  
 						if (isValidPlacement(i, j, num, board)) {
 							board[i][j] = num;
-							System.out.println("Placed " + num);
 						}
 					}
 				}
 			}
 		}
-		System.out.println("Made Board");
 		return board;
 	}
 
@@ -540,10 +554,10 @@ public class Sudoku {
 	private static int[][] generatePuzzle(int[][] board, int emptyCells) {
 		int count = 0;
 		while (count < emptyCells) {
-			int randomRow = (int) (Math.random() * 9); // returns a number between 0 and 8
+			int randomRow = (int) (Math.random() * 9); // returns a number between 0 and 8	
 			int randomCol = (int) (Math.random() * 9); // returns a number between 0 and 8
-		
-			if (board[randomRow][randomCol] != 0) { // this is a cell we can make empty
+	
+			if (board[randomRow][randomCol] != 0) { // this is a cell we can make empty	
 				board[randomRow][randomCol] = 0;
 				count++;
 			}
