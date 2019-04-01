@@ -3,6 +3,7 @@ package sudoku;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Scanner;
 
 public class Sudoku {
@@ -31,7 +32,9 @@ public class Sudoku {
 		switch(choice) {
 		case 1: // Generate a puzzle
 			System.out.println("How many cells should be empty in this puzzle?");
-			int emptyCells = scan.nextInt(); scan.nextLine();
+			int emptyCells = scan.nextInt(); 
+			scan.nextLine();
+			System.out.println();
 			int[][] puzzle = generatePuzzle(generateSolvedBoard(), emptyCells);
 			System.out.println("printing puzzle");
 			printBoard(puzzle);
@@ -88,7 +91,7 @@ public class Sudoku {
 
 		printBoard(board);
 
-		System.out.println("The Sudoku puzzle has been solved.\nTotal Time Elapsed: "
+		System.out.println("The Sudoku puzzle has been solved.\nTime Elapsed: "
 				+ (System.currentTimeMillis() - startTime) + " ms");
 
 	}
@@ -510,16 +513,20 @@ public class Sudoku {
 		int[][] board = new int[9][9];
 		for (int i = 0; i < 9; i++) {
 			for (int j = 0; j < 9; j++) {
+				HashSet<Integer> guessed = new HashSet<Integer>();
 				while (board[i][j] == 0) {
+					boolean notGuessed = true;
 					int num = (int) (Math.random() * 9) + 1; // returns a number between 1 and 9
-
-					if (isValidPlacement(i, j, num, board)) {
-						board[i][j] = num;
+					if (guessed.add(num)) {  
+						if (isValidPlacement(i, j, num, board)) {
+							board[i][j] = num;
+							System.out.println("Placed " + num);
+						}
 					}
-
 				}
 			}
 		}
+		System.out.println("Made Board");
 		return board;
 	}
 
