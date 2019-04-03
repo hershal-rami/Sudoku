@@ -43,10 +43,14 @@ public class Sudoku {
 			}
 			System.out.println();
 
-			int[][] puzzle = generatePuzzle(generateSolvedBoard(), emptyCells);
+			int[][] solution = generateSolvedBoard();
+			int[][] puzzle = generatePuzzle(solution, emptyCells);
 			System.out.println("Made Board after " + generateCount + " attempts.");
 			System.out.println("printing puzzle");
 			printBoard(puzzle);
+			System.out.println("\n\nSolving newly generated board. Press enter to view.");
+			scan.nextLine();
+			printBoard(solution);
 			break;
 		case 2: // Solve a puzzle
 			System.out.println("Please enter the name of the file with the Sudoku puzzle to solve.");
@@ -534,8 +538,8 @@ public class Sudoku {
 						if (guessed.contains(k))
 							stuck += k;
 					}
+					// impossible layout
 					if (stuck.equals("123456789")) {
-						// impossible layout
 						board = generateSolvedBoard();
 						generateCount++;
 						break outer;
@@ -561,7 +565,11 @@ public class Sudoku {
 	 *            The number of empty cells the puzzle should contain
 	 * @return A 2D array containing a puzzle ready to be solved
 	 */
-	private static int[][] generatePuzzle(int[][] board, int emptyCells) {
+	private static int[][] generatePuzzle(int[][] mboard, int emptyCells) {
+		int[][] board = new int[9][9];
+		for (int i=0;i<board.length;i++) {
+			board[i] = Arrays.copyOf(mboard[i], mboard.length);
+		}
 		int count = 0;
 		while (count < emptyCells) {
 			int randomRow = (int) (Math.random() * 9); // returns a number between 0 and 8
